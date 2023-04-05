@@ -15,7 +15,9 @@ const User = connection.define('user', {
         type: Sequelize.STRING // varchar(255)
     },
     username: {
-        type: Sequelize.STRING // varchar(255)
+        type: Sequelize.STRING, // varchar(255)
+        allowNull: false,
+        unique: true
     },
     senha: {
         type: Sequelize.STRING // varchar(255)

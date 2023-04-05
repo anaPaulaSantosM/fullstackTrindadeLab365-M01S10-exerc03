@@ -87,6 +87,18 @@ app.delete('/places/:id', async (request, response) => {
         app.post('/users', async (request, response) => {
             try {
 
+                const userInDatabase = await User.findOne({
+                    where: {
+                            username: req.body.username
+                            }
+                })
+
+                if(userInDatabase){
+                    return response
+                    .status(403)
+                    .json({message: 'Já existe um usuário com esse username'})
+                }
+
                 const hash = await bcrypt.hash(request.body.password, 10)
                 
                 const newUser = {
@@ -123,7 +135,47 @@ app.delete('/places/:id', async (request, response) => {
         
             } catch (error) {
                 console.log(error)
-                response.status(500).json({message: 'Não possivel concluir a operação'})
+                response.status(500).json({message: 'Não foi possivel concluir a operação'})
+            }
+        })
+
+        app.post('/users/login', async (request, response) => {
+
+            try{
+
+            const userInDatabase = await User.findOne({
+                where: {
+                    username: request.body.username,
+                    password: request.body.password
+                }
+            })
+
+            if(!userInDatabase) {
+                return response.json({message: 'Usuário ou senha inválidos'});
+            }
+
+            const passwordIsValid = await bcrypt.compare(request.body.password, userInDatabase.password)
+
+            if(!passwordIsValid){
+                return response.json({message: 'Credenciais incorretas'});
+            }
+
+            const token = jwt.sign(
+                {
+                    id: userInDatabase.id
+                },
+                'MINHA_CHAVE_SECRETA',
+                {
+                    expiresIn: '1h'
+                }
+            )
+
+            response.json({id: userInDatabase.id, token:token});
+            
+            }
+            catch(err){
+                console.log(error)
+                response.status(500).json({message: 'Não foi possivel concluir a operação'})
             }
         })
 
